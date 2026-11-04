@@ -67,6 +67,18 @@ These commands validate and display a plan without invoking a model. Before live
 
 Example manifests may depend on local paths, external task assets, services, or disposable accounts. Adapt and review them before use. Do not put credentials in manifests or task files.
 
+## Customize for an experiment
+
+The runner separates experiment settings from task definitions. Fork or clone the repository, copy `measurements/testbed/rig/examples/smoke.toml` to a new manifest, assign a unique `campaign_id`, and adapt these sections:
+
+1. Set `[models.<name>]` to the provider, exact model ID, and settings you plan to use.
+2. Define MCP servers in `[catalog.<name>]` and CLI/skill bundles in `[capabilities.<name>]`. `capability-smoke.toml` shows examples for search, browser, database, and GitHub tools; review its external-service requirements before use. Pass required environment variable names through the manifest allowlists, and supply secret values outside the manifest.
+3. Add or edit `[tasks.<name>]` entries with the instruction, selected tools, time limit, setup/reset commands, and verifier command. Task files and paths can be organized for your experiment; use the existing controls or composites as examples.
+4. Set `[matrix]` to choose modes, models, catalogs, repetitions, and a seed. For a controlled comparison, keep task instructions and verification rules consistent across tool-delivery modes.
+5. Add offline validation cases for custom tasks and run `validate` and `plan` against the new manifest before any live run.
+
+See [`GUIDE.md`](measurements/testbed/rig/GUIDE.md) for the full manifest schema and path rules. The runner binds each campaign ID to a digest of its manifest and seeded plan. Use a new `campaign_id` when changing a campaign after it has started. The manifest configures the three supported delivery modes; adding another mode or changing runner-level accounting requires changes to the runner and its tests.
+
 ## Task data and evaluation
 
 The GAIA verifier accepts an operator-supplied task JSON. Its regression tests use synthetic fixtures. For benchmark use, obtain task records from the official source under its current access and license terms. Keep reference answers and verifier data outside the agent-visible workspace.
