@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Credentials and local overrides
+.env
+.env.*
+!.env.example
+**/auth.json
+**/github-token
+**/secrets/
+
+# Runtime downloads and mutable installs (pinned manifests remain tracked)
+measurements/testbed/rig/runtime/bin/
+measurements/testbed/rig/runtime/downloads/
+measurements/testbed/rig/runtime/node_modules/
+measurements/testbed/rig/runtime/pgvenv/
+measurements/testbed/rig/runtime/chrome/
+measurements/testbed/rig/runtime/harbor-venv/
+measurements/testbed/rig/runtime/docker-client/
+measurements/testbed/rig/runtime/real-task-preparation/
+measurements/testbed/rig/runtime/harbor-pilot-controller.lock
+
+# Run outputs and local evidence
+measurements/testbed/rig/verification/evidence/
+measurements/testbed/rig/runtime/harbor-*/
+measurements/testbed/rig/runtime/*runs*/
+measurements/testbed/rig/runtime/*jobs*/

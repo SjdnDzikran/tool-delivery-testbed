@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""One main cell per invocation; review between cells, pause quota-limited models."""
+import argparse
+from collections import Counter
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+RIG = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RIG))
+import runner
+from harbor_pi.adapter import cell_id
+from harbor_pi.bridge import docker_env
+from harbor_pi.campaign_freeze import verify_freeze
+from harbor_pi.pilot import matrix_specs, result_summary
+
+MANIFEST = RIG / 'examples/harbor-campaign-execution-v6.toml'
+OUTPUT = RIG / 'runtime/main-campaign-2026-11-01-v6'
+STATE = OUTPUT / 'supervisor-state.json'
+
+
+def load_state():
+    return json.loads(STATE.read_text()) if STATE.exists() else {
+        'step': 0, 'active': False, 'needs_review': False, 'halt': None, 'blocked_models': {}}
+
+
+def save(state):
+    runner.atomic_write_json(STATE, state)
+
+
+def pending(m, state):
+    return [s for s in matrix_specs(m) if s['model'] not in state['blocked_models']
+            and not (OUTPUT / cell_id(s)).exists()]
+
+
+def status():
+    state = load_state()
+    m = runner.load_manifest(MANIFEST)
+    verify_freeze(m, MANIFEST)
+    available = pending(m, state)
+    summary = json.loads((OUTPUT/'summary.json').read_text()) if (OUTPUT/'summary.json').exists() else {'rows': []}
+    incidents = list(OUTPUT.glob('*/predecessor-setup-failure.json'))
+    return {**state, 'next_cell': available[0] if available else None,
+            'retained_setup_failures': len(incidents),
+            'assigned_cells_accounted_for': len(summary['rows']) + len(incidents),
+            'recorded_attempts': len(summary['rows']),
+            'outcomes': dict(Counter(r.get('outcome', 'not_completed') for r in summary['rows'])),
+            'recorded_tokens': summary.get('recorded_total_tokens', 0)}
+
+
+def cleanup_check(directory):
+    """Inspect only this attempt's Compose projects; never delete anything."""
+    projects = {p.name.lower()+'__env' for p in (directory/'jobs').glob('*/task__*') if p.is_dir()}
+    if not projects:
+        return False
+    for project in projects:
+        for command in (['docker', 'ps', '-aq', '--filter', f'label=com.docker.compose.project={project}'],
+                        ['docker', 'network', 'ls', '-q', '--filter', f'label=com.docker.compose.project={project}']):
+            p = subprocess.run(command, env=docker_env(), capture_output=True, text=True, timeout=30)
+            if p.returncode or p.stdout.strip():
+                return False
+    return True
+
+
+def run():
+    OUTPUT.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with (OUTPUT/'supervisor.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX|fcntl.LOCK_NB)
+        state = load_state()
+        if state['active'] or state['needs_review'] or state['halt']:
+            raise RuntimeError('Review or diagnosis required; no next cell started')
+        m = runner.load_manifest(MANIFEST)
+        verify_freeze(m, MANIFEST)
+        receipt_path = (MANIFEST.parent/m['harness']['execution_freeze_receipt']).resolve()
+        receipt = json.loads(receipt_path.read_text())
+        if receipt['supervisor_sha256'] != hashlib.sha256(Path(__file__).read_bytes()).hexdigest():
+            raise RuntimeError('Supervisor changed after freeze')
+        available = pending(m, state)
+        if not available:
+            print(json.dumps(status(), indent=2));return
+        spec = available[0]
+        state.update(step=state['step']+1, active=True, selected=spec)
+        save(state)
+        directory = OUTPUT/cell_id(spec)
+        try:
+            with (OUTPUT/f'controller-step-{state["step"]:03d}.log').open('x') as log:
+                code = subprocess.run([sys.executable, '-u', '-m', 'harbor_pi.pilot',
+                    '--manifest', str(MANIFEST), '--output', str(OUTPUT), '--model', spec['model'], '--execute'],
+                    env={**os.environ, 'PYTHONPATH': str(RIG)}, stdout=log, stderr=subprocess.STDOUT).returncode
+            if code and not (directory/'scope.json').is_file():
+                raise RuntimeError('Preparation failed before scope; see retained controller log')
+            row = result_summary(directory)
+            cleanup = cleanup_check(directory)
+            quota = row.get('process_status') == 'provider_blocked'
+            if quota:
+                state['blocked_models'][spec['model']] = cell_id(spec)
+            bounded = row.get('outcome') in {'budget_exceeded', 'deadline_exceeded'}
+            remote = row.get('remote_cleanup_status') != 'failed'
+            failed = (code or row.get('exception_type') or row.get('provider_error')
+                      or row.get('outcome') in {'not_completed', 'infrastructure_error', 'audit_review'})
+            if not cleanup or not remote or (failed and not quota and not bounded):
+                state['halt'] = 'infrastructure/capture/route/cleanup review required'
+            state['last'] = {k: row.get(k) for k in ('task', 'model', 'mode', 'catalog', 'rep', 'outcome',
+                'clean_pass', 'verifier_pass', 'total_tokens', 'process_status', 'route_status', 'exposure_status')}
+            state['last'].update(cell_id=cell_id(spec), cleanup_verified=cleanup,
+                                 quota_model_paused=quota, controller_exit_code=code)
+        except BaseException:
+            state['halt'] = 'supervisor/controller exception; preserve attempt, no replay'
+            raise
+        finally:
+            state.update(active=False, needs_review=True)
+            save(state)
+        print(json.dumps(status(), indent=2))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=('status', 'run', 'review'))
+    args = parser.parse_args()
+    if args.action == 'run':
+        run()
+    elif args.action == 'review':
+        state = load_state()
+        if state['active'] or state['halt']:
+            raise RuntimeError('Cannot advance an active or halted campaign')
+        state['needs_review'] = False
+        save(state)
+        print(json.dumps(status(), indent=2))
+    else:
+        print(json.dumps(status(), indent=2))

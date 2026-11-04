@@ -1,0 +1,144 @@
+# Capability smoke manifest [ours — pinned routes, ready for bounded runs].
+#
+# NOT the thesis campaign: three tiny capability probes (search/browser/DB).
+# A plan contains 18 trials: 3 tasks x 3 modes x 2 catalogs x 1 model.
+# This file has NOT been executed. Running spends model tokens.
+#
+#   . ../env.sh                                   # rig/runtime/bin on PATH
+#   ../scripts/pgfixture start; eval "$(../scripts/pgfixture env)"
+#   export BRAVE_API_KEY=...                      # host env (never committed)
+#   python3 ../runner.py validate capability-smoke.toml
+#   python3 ../runner.py doctor   capability-smoke.toml --probe-mcp
+#   python3 ../runner.py plan     capability-smoke.toml
+#   python3 ../runner.py run      capability-smoke.toml     # spends tokens!
+#
+# The GitHub MCP catalog entry below is not selected by the tasks. To use it,
+# configure a disposable account and explicitly export STUDY_GITHUB_TOKEN in
+# a private shell. env.sh does not read credential files or load tokens.
+#
+# Pins resolved 2026-10-28; see ../INSTALL.md for versions, checksums, and
+# sources. Catalog commands are PATH names resolved from rig/runtime/bin.
+schema_version = 1
+
+[harness]
+campaign_id = "capability-smoke"
+binary = "~/.local/bin/pi-research"
+required_version = "1.0.4"
+auth_source = "~/.config/tool-delivery-testbed/auth.json"
+auth_mode = "symlink"
+
+[paths]
+skills_dir = "../skills"
+
+[harness.env]
+PI_OFFLINE = "1"
+PLAYWRIGHT_MCP_SANDBOX = "true"
+PLAYWRIGHT_BROWSERS_PATH = "0"
+
+[models.glm53flash]
+provider = "zai"
+id = "glm-5.3-flash"
+thinking = "max"
+
+[catalog.brave-search]
+command = "brave-search-mcp-server"                 # rig/runtime/bin
+args = []
+env = { BRAVE_API_KEY = "${BRAVE_API_KEY}" }
+env_names = ["BRAVE_API_KEY"]
+description = "Web, news, image, and video search via the Brave Search API."
+
+[catalog.playwright]
+command = "playwright-mcp"                          # rig/runtime/bin
+args = ["--browser", "chrome", "--headless", "--isolated"]
+env = { PLAYWRIGHT_MCP_EXECUTABLE_PATH = "${PLAYWRIGHT_MCP_EXECUTABLE_PATH}" }
+env_names = ["PLAYWRIGHT_MCP_EXECUTABLE_PATH"]
+description = "Browser automation via Playwright MCP using the pinned Google Chrome executable."
+
+[catalog.postgres]
+command = "postgres-mcp"                            # rig/runtime/bin
+args = ["--access-mode=unrestricted"]
+env = { DATABASE_URI = "${TESTBED_PG_DSN}" }
+env_names = ["TESTBED_PG_DSN"]
+description = "Read and write access to the disposable fixture PostgreSQL database."
+
+[catalog.github]
+command = "github-mcp-server"                      # rig/runtime/bin
+args = ["stdio"]
+env = { GITHUB_PERSONAL_ACCESS_TOKEN = "${STUDY_GITHUB_TOKEN}" }
+env_names = ["STUDY_GITHUB_TOKEN"]
+description = "GitHub repositories, pull requests, issues, and commits using the explicitly configured account."
+
+[capabilities.bx]
+kind = "cli"
+skills = ["bx-search"]
+executables = ["bx"]
+# bx authentication is managed by the operator's private CLI configuration.
+# Do not add credential values to this manifest.
+
+[capabilities.playwright-cli]
+kind = "cli"
+skills = ["playwright-cli"]
+executables = ["playwright-cli"]
+env_names = ["PLAYWRIGHT_MCP_EXECUTABLE_PATH"]
+
+[capabilities.psql]
+kind = "cli"
+skills = ["psql"]
+executables = ["psql"]
+env_names = ["TESTBED_PG_DSN"]
+
+[capabilities.gh]
+kind = "cli"
+skills = ["gh"]
+executables = ["gh-github", "git"]                 # gh-github = study-account wrapper (runtime/bin)
+env_names = ["TESTBED_GH_REPO", "GH_CONFIG_DIR"]  # GH_CONFIG_DIR routes git push auth to the study token
+
+# ---------------------------------------------------------------------------
+# Tiny capability smokes. Each is a readiness probe, not an equivalence task:
+# a pass proves the route ran, nothing about real-task difficulty.
+[tasks.cap_brave]
+instruction = "capability-smoke/instructions/cap_brave.md"
+capabilities = ["bx"]
+catalog = ["brave-search"]
+deadline_s = 600
+verify = ["python3", "{manifest_dir}/capability-smoke/verify/cap_brave.py", "--artifacts", "{workspace}"]
+
+[tasks.cap_browser]
+instruction = "capability-smoke/instructions/cap_browser.md"
+capabilities = ["playwright-cli"]
+catalog = ["playwright"]
+deadline_s = 600
+reset = ["bash", "-c", "playwright-cli close-all >/dev/null 2>&1 || true; playwright-cli kill-all >/dev/null 2>&1 || true; sh '{manifest_dir}/capability-smoke/stop-fixture.sh'"]
+setup = ["bash", "{manifest_dir}/capability-smoke/serve-fixture.sh"]
+verify = ["python3", "{manifest_dir}/capability-smoke/verify/cap_browser.py", "--artifacts", "{workspace}"]
+
+[tasks.cap_db]
+instruction = "capability-smoke/instructions/cap_db.md"
+capabilities = ["psql"]
+catalog = ["postgres"]
+deadline_s = 600
+reset = ["bash", "-c", "psql \"$TESTBED_PG_DSN\" -v ON_ERROR_STOP=1 -c 'DROP TABLE IF EXISTS smoke_items'"]
+verify = ["python3", "{manifest_dir}/capability-smoke/verify/cap_db.py", "--artifacts", "{workspace}"]
+
+# [tasks.cap_github_mcp]                          # BLOCKED on manual PAT:
+# instruction = "capability-smoke/instructions/cap_github_mcp.md"   # (unwritten)
+# catalog = ["github"]                            # uncomment together with
+# capabilities = []                               # STUDY_GITHUB_TOKEN export
+
+[matrix]
+modes = ["eager", "deferred", "cli"]
+models = ["glm53flash"]
+catalogs = ["required", "full"]
+reps = 1
+seed = 2026
+
+[quota]
+base_s = 60
+multiplier = 2
+cap_s = 1800
+pause_above_s = 600
+max_attempts_per_trial = 1
+
+[budget]
+# Per-trial assistant-message watchdog, NOT complete-run/campaign billing.
+max_total_tokens = 250000

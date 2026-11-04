@@ -1,0 +1,11 @@
+#!/bin/sh
+# Harbor stays local to this checkout; never upgrades the daily Python env.
+set -eu
+RIG=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+UV="$RIG/runtime/uv/uv"
+VENV="$RIG/runtime/harbor-venv"
+[ -x "$UV" ] || { echo 'Run install-capabilities first (pinned uv needed)' >&2; exit 2; }
+[ -x "$VENV/bin/python" ] || "$UV" venv --python python3.12 "$VENV"
+"$UV" pip sync --python "$VENV/bin/python" "$RIG/runtime/harbor-requirements-resolved.txt"
+[ "$("$VENV/bin/harbor" --version)" = 0.23.0 ]
+printf '%s\n' 'Harbor 0.23.0 installed locally. No Docker or provider execution performed.'

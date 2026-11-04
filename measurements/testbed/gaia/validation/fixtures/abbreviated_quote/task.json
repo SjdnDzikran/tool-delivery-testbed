@@ -1,0 +1,8 @@
+{
+  "task_id": "synthetic-fixture",
+  "question": "In this synthetic test, what is the fictional city printed on the sample card?",
+  "reference_answer": "Saint Exampleton",
+  "provenance": {
+    "source": "synthetic verifier regression fixture"
+  }
+}

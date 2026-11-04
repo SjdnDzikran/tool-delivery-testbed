@@ -1,0 +1,75 @@
+# Runnable smoke manifest [ours — pilot-ready shape, requires explicit run].
+#
+# Plain self-contained tasks (the two controls) with no MCP servers and no
+# CLI capabilities: this verifies the whole rig (harness pin, auth reuse,
+# per-trial agent dirs, sessions, verifiers, checkpoints) on the exact
+# pinned models WITHOUT any pins that are still unresolved. Every run spends
+# provider tokens: start it only deliberately, e.g.
+#
+#   python3 ../runner.py validate smoke.toml
+#   python3 ../runner.py doctor   smoke.toml
+#   python3 ../runner.py plan     smoke.toml
+#   python3 ../runner.py run      smoke.toml          # spends model tokens!
+#
+# Auth stays at the operator-configured private path; it is never printed,
+# copied into the repo, or committed.
+schema_version = 1
+
+[harness]
+campaign_id = "smoke-controls"
+binary = "~/.local/bin/pi-research"          # pinned Pi 1.0.4 wrapper
+required_version = "1.0.4"
+auth_source = "~/.config/tool-delivery-testbed/auth.json"
+auth_mode = "symlink"                        # shared token refresh; see GUIDE
+
+[harness.env]
+PI_OFFLINE = "1"                             # no catalog refresh, no version check traffic
+
+[models.gpt6luna]
+provider = "openai"
+id = "gpt-6-luna"
+thinking = "max"
+
+[models.glm53flash]
+provider = "zai"
+id = "glm-5.3-flash"
+thinking = "max"
+
+# No [capabilities.*] and no [catalog.*]: the controls are tool-free
+# transformation tasks, so all three arms use native tools only here.
+
+[tasks.control_1]
+instruction = "../../controls/control_1_filter_sort/instruction.md"
+capabilities = []                            # no CLI skills for this task
+catalog = []                                 # no MCP servers: native control
+deadline_s = 600                             # fixed per task across arms
+verify = ["python3",
+          "{manifest_dir}/../../controls/control_1_filter_sort/verify.py",
+          "--artifacts", "{workspace}"]
+
+[tasks.control_2]
+instruction = "../../controls/control_2_group_aggregate/instruction.md"
+capabilities = []
+catalog = []
+deadline_s = 600
+verify = ["python3",
+          "{manifest_dir}/../../controls/control_2_group_aggregate/verify.py",
+          "--artifacts", "{workspace}"]
+
+[matrix]
+modes = ["eager", "deferred", "cli"]
+models = ["gpt6luna", "glm53flash"]
+catalogs = ["required"]
+reps = 1
+seed = 2026
+
+[quota]                                      # provider-quota policy defaults
+base_s = 60
+multiplier = 2
+cap_s = 1800
+pause_above_s = 600
+max_attempts_per_trial = 1
+# Optional probe_command must check THIS model provider, not GitHub API quota.
+
+# [budget]
+# max_total_tokens = 2000000                  # usage-derived kill switch

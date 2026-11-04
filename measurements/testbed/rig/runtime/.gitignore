@@ -1,0 +1,8 @@
+# Local install tree: everything except the pinned manifests is gitignored.
+*
+!.gitignore
+!package.json
+!package-lock.json
+!pg-requirements-resolved.txt
+!pg-override.txt
+!harbor-requirements-resolved.txt

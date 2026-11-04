@@ -1,0 +1,11 @@
+{
+  "name": "pi-harbor-pilot-runtime",
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "1.0.4",
+    "@brave/brave-search-mcp-server": "2.1.4",
+    "@playwright/cli": "0.1.22",
+    "@playwright/mcp": "0.0.83"
+  }
+}

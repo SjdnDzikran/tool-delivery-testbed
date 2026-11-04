@@ -1,0 +1,22 @@
+{
+  "East": {
+    "headcount": 6,
+    "total_salary": 488050,
+    "avg_salary": 81341.67
+  },
+  "North": {
+    "headcount": 8,
+    "total_salary": 749945,
+    "avg_salary": 93743.13
+  },
+  "South": {
+    "headcount": 4,
+    "total_salary": 342400,
+    "avg_salary": 85600.0
+  },
+  "West": {
+    "headcount": 6,
+    "total_salary": 575050,
+    "avg_salary": 95841.67
+  }
+}

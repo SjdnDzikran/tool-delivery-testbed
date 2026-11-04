@@ -1,0 +1,37 @@
+[
+  {
+    "id": "E01",
+    "name": "Luca Osei",
+    "salary": 128400
+  },
+  {
+    "id": "E05",
+    "name": "Bruno Lindgren",
+    "salary": 121000
+  },
+  {
+    "id": "E07",
+    "name": "Uma Ackermann",
+    "salary": 118500
+  },
+  {
+    "id": "E11",
+    "name": "Greta Sorensen",
+    "salary": 112300
+  },
+  {
+    "id": "E19",
+    "name": "Mina Vance",
+    "salary": 104750
+  },
+  {
+    "id": "E13",
+    "name": "Tomas Ulrich",
+    "salary": 104750
+  },
+  {
+    "id": "E17",
+    "name": "Dario Fontaine",
+    "salary": 98600
+  }
+]

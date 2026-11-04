@@ -1,0 +1,136 @@
+# Historical campaign skeleton. Required assets and freeze receipts are not
+# included here; this file is not a ready-to-run or authorized campaign.
+schema_version = 1
+
+[harness]
+campaign_id = "thesis-campaign"
+binary = "~/.local/bin/pi-research"
+required_version = "1.0.4"
+auth_source = "~/.config/tool-delivery-testbed/auth.json"
+auth_mode = "symlink"
+
+[paths]
+skills_dir = "../skills"
+
+[harness.env]
+PI_OFFLINE = "1"
+PLAYWRIGHT_MCP_SANDBOX = "true"
+PLAYWRIGHT_BROWSERS_PATH = "0"
+
+[models.gpt6luna]
+provider = "openai"
+id = "gpt-6-luna"
+thinking = "max"
+
+[models.glm53flash]
+provider = "zai"
+id = "glm-5.3-flash"
+thinking = "max"
+
+[catalog.brave-search]
+command = "brave-search-mcp-server"                 # rig/runtime/bin (npm @brave/brave-search-mcp-server 2.1.4)
+args = []
+env = { BRAVE_API_KEY = "${BRAVE_API_KEY}" }
+env_names = ["BRAVE_API_KEY"]
+description = "Web, news, image, and video search via the Brave Search API."
+
+[catalog.playwright]
+command = "playwright-mcp"                          # rig/runtime/bin (npm @playwright/mcp 0.0.83)
+args = ["--browser", "chrome", "--headless", "--isolated"]
+env = { PLAYWRIGHT_MCP_EXECUTABLE_PATH = "${PLAYWRIGHT_MCP_EXECUTABLE_PATH}" }
+env_names = ["PLAYWRIGHT_MCP_EXECUTABLE_PATH"]
+description = "Browser automation via Playwright MCP using pinned Google Chrome, headless, sandbox explicitly requested."
+
+[catalog.postgres]
+command = "postgres-mcp"                            # rig/runtime/bin (crystaldba/postgres-mcp @ 15c8e3335354)
+args = ["--access-mode=unrestricted"]
+env = { DATABASE_URI = "${TESTBED_PG_DSN}" }
+env_names = ["TESTBED_PG_DSN"]
+description = "Read and write access to the task PostgreSQL database."
+
+[catalog.github]
+command = "github-mcp-server"                       # rig/runtime/bin (github/github-mcp-server v2.0.3)
+args = ["stdio"]
+env = { GITHUB_PERSONAL_ACCESS_TOKEN = "${STUDY_GITHUB_TOKEN}" }   # dedicated study account, via env.sh
+env_names = ["STUDY_GITHUB_TOKEN"]
+description = "GitHub repositories, pull requests, issues, and commits, authenticated as the dedicated study account."
+
+[capabilities.gh]
+kind = "cli"
+skills = ["gh"]
+executables = ["gh-github", "git"]                 # gh-github = study-account wrapper (runtime/bin)
+env_names = ["TESTBED_GH_REPO", "GH_CONFIG_DIR"]  # GH_CONFIG_DIR routes git push auth to the study token
+
+[capabilities.psql]
+kind = "cli"
+skills = ["psql"]
+executables = ["psql"]
+env_names = ["TESTBED_PG_DSN"]
+
+[capabilities.bx]
+kind = "cli"
+skills = ["bx-search"]
+executables = ["bx"]
+# bx resolves its key itself: flag > BRAVE_SEARCH_API_KEY env > private
+# config file; no key env name required on this machine.
+
+[capabilities.playwright-cli]
+kind = "cli"
+skills = ["playwright-cli"]
+executables = ["playwright-cli"]                    # rig/runtime/bin (npm @playwright/cli 0.1.22)
+env_names = ["PLAYWRIGHT_MCP_EXECUTABLE_PATH"]
+
+# Task entries below reference the constructed testbed tasks. Setup/reset
+# commands are argument arrays; {workspace}/{artifacts}/{manifest_dir}
+# placeholders resolve at run time. Deadlines are fixed per task across
+# arms; fill and re-freeze before the pilot.
+
+[tasks.control_1]
+instruction = "../../controls/control_1_filter_sort/instruction.md"
+capabilities = []
+catalog = []
+deadline_s = 600
+verify = ["python3", "{manifest_dir}/../../controls/control_1_filter_sort/verify.py", "--artifacts", "{workspace}"]
+
+[tasks.control_2]
+instruction = "../../controls/control_2_group_aggregate/instruction.md"
+capabilities = []
+catalog = []
+deadline_s = 600
+verify = ["python3", "{manifest_dir}/../../controls/control_2_group_aggregate/verify.py", "--artifacts", "{workspace}"]
+
+# GAIA retrieval tasks: instruction copies are produced by the screening
+# step; composite restore/verify wiring mirrors each task's restore.sh and
+# verify.py. Entries stay commented until those paths are frozen:
+# [tasks.gaia_g1]
+# instruction = "../gaia/tasks/g1/instruction.md"
+# capabilities = ["bx"]
+# catalog = ["brave-search"]
+# deadline_s = 900
+# verify = ["python3", "{manifest_dir}/../../gaia/verify.py", "--artifacts", "{artifacts}"]
+#
+# [tasks.composite_1]
+# instruction = "../../composites/composite_1_search_db/instruction.md"
+# capabilities = ["psql", "bx"]
+# catalog = ["brave-search", "postgres"]
+# deadline_s = 1200
+# reset = ["bash", "{manifest_dir}/../../composites/composite_1_search_db/restore.sh"]
+# verify = ["python3", "{manifest_dir}/../../composites/composite_1_search_db/verify.py", "--artifacts", "{workspace}"]
+
+[matrix]
+modes = ["eager", "deferred", "cli"]
+models = ["gpt6luna", "glm53flash"]
+catalogs = ["required", "full"]
+reps = 3
+seed = 2026
+
+[quota]
+base_s = 60
+multiplier = 2
+cap_s = 1800
+pause_above_s = 600
+max_attempts_per_trial = 1
+
+[budget]
+# Per-trial assistant-message watchdog, NOT complete-run/campaign billing.
+max_total_tokens = 2000000

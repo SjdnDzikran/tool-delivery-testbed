@@ -1,0 +1,42 @@
+#!/bin/sh
+# Recreate the resolved 2026-10-28 capability install, not rolling latest.
+# Linux x86_64 only; uses user caches, no sudo/global installs/Pi changes.
+set -eu
+[ "$(uname -sm)" = "Linux x86_64" ] || { echo 'Requires Linux x86_64' >&2; exit 2; }
+RIG=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$RIG/runtime"
+mkdir -p downloads bin uv
+fetch() { curl --fail --location --retry 2 --max-time 180 "$1" -o "$2"; }
+verify() { printf '%s  %s\n' "$1" "$2" | sha256sum --check --status; }
+fetch https://github.com/astral-sh/uv/releases/download/0.13.6/uv-x86_64-unknown-linux-gnu.tar.gz downloads/uv.tar.gz
+verify f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645 downloads/uv.tar.gz
+tar -xzf downloads/uv.tar.gz --strip-components=1 -C uv
+fetch https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Linux_x86_64.tar.gz downloads/github.tar.gz
+verify f797c20fe02a755865d0e2d46184ab47e31bf1619b0855b8d89c531e45a651c2 downloads/github.tar.gz
+tar -xzf downloads/github.tar.gz -C bin github-mcp-server
+fetch https://github.com/cli/cli/releases/download/v2.103.3/gh_2.103.3_linux_amd64.tar.gz downloads/gh.tar.gz
+verify 4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d downloads/gh.tar.gz
+tar -xzf downloads/gh.tar.gz --strip-components=2 -C bin gh_2.103.3_linux_amd64/bin/gh
+# Follow packageManager and the committed npm lock; do not create another lock.
+[ "$(npm --version)" = "11.19.0" ] || { echo 'Requires npm 11.19.0 (packageManager)' >&2; exit 2; }
+npm ci
+# The selected route is pinned Google Chrome, outside Playwright's GC cache.
+"$RIG/scripts/install-chrome"
+[ -x pgvenv/bin/python ] || uv/uv venv --python python3 pgvenv
+# Sync the FULL resolved environment. The pglast override is deliberate;
+# pip check reports upstream metadata's missing exact pin (see INSTALL.md).
+uv/uv pip sync --python pgvenv/bin/python pg-requirements-resolved.txt
+for program in brave-search-mcp-server playwright-cli playwright-mcp; do
+  ln -sfn "../node_modules/.bin/$program" "bin/$program"
+done
+ln -sfn ../pgvenv/bin/postgres-mcp bin/postgres-mcp
+cat > bin/gh-github <<'WRAPPER'
+#!/bin/sh
+# Study-account gh: separate config dir keeps trial credentials isolated
+# from the personal gh login. One-time setup: gh-github auth login
+GH_CONFIG_DIR="${GH_STUDY_CONFIG_DIR:-$HOME/.config/gh-study}"
+export GH_CONFIG_DIR
+exec gh "$@"
+WRAPPER
+chmod +x bin/gh-github
+printf '%s\n' 'Installed pinned capabilities, including local gh and the gh-github study wrapper. Global bx, gh, psql, and Pi were not modified.'

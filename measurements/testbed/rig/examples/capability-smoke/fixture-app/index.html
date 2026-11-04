@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Capability smoke fixture</title>
+</head>
+<body>
+  <h1>Fixture app</h1>
+  <p id="status">idle</p>
+  <button id="reveal" type="button">Reveal answer</button>
+  <p id="answer"></p>
+  <script>
+    // Disposable local fixture for browser-capability smokes [ours].
+    // The token is fixed so the committed verifier can check it; this page
+    // is served from loopback only and is not a study task.
+    document.getElementById('reveal').addEventListener('click', function () {
+      document.getElementById('answer').textContent = 'SMOKE-TOKEN-4F7A';
+      document.getElementById('status').textContent = 'revealed';
+    });
+  </script>
+</body>
+</html>

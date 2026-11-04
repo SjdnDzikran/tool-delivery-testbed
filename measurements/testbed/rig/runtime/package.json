@@ -1,0 +1,11 @@
+{
+  "name": "tugas-akhir-rig-runtime",
+  "private": true,
+  "description": "Pinned Node capability packages for the experiment rig. Installed locally (gitignored except this manifest and lockfile); never installed globally. Resolved 2026-10-28 from the npm registry; see ../INSTALL.md.",
+  "packageManager": "npm@11.19.0",
+  "dependencies": {
+    "@brave/brave-search-mcp-server": "2.1.4",
+    "@playwright/cli": "0.1.22",
+    "@playwright/mcp": "0.0.83"
+  }
+}

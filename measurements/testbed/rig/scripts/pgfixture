@@ -1,0 +1,93 @@
+#!/bin/sh
+# Disposable user-mode PostgreSQL fixture for capability smokes [ours].
+#
+# Uses the machine's existing PostgreSQL 16 server binaries
+# (/usr/lib/postgresql/16/bin, not on PATH by default) to provision a
+# per-checkout cluster under rig/runtime/pg-fixture/ (gitignored). It never
+# touches the system instance on localhost:5432: this fixture listens on
+# 127.0.0.1:55432 only, with a private socket directory.
+#
+# Usage:
+#   pgfixture start    # initdb if needed, launch, create testbed db
+#   pgfixture stop     # clean shutdown (fast)
+#   pgfixture status   # running? + DSN
+#   pgfixture env      # shell exports: TESTBED_PG_DSN, PGHOST, PGPORT, ...
+#   pgfixture destroy  # stop AND delete the data dir
+#
+# The fixture is throwaway local state (trust auth on loopback only, no
+# password, no data of value); its DSN is NOT a secret and is not committed.
+
+set -eu
+RIG_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+PGBIN=/usr/lib/postgresql/16/bin
+FIX="$RIG_DIR/runtime/pg-fixture"
+DATA="$FIX/data"
+# The worktree path is deep; the Unix-socket dir must stay under 107 bytes,
+# so it lives in /tmp keyed by a short hash of this rig's absolute path.
+SOCK="/tmp/pgfixture-$(printf %s "$RIG_DIR" | md5sum | cut -c1-8)"
+LOG="$FIX/postgres.log"
+PID="$DATA/postmaster.pid"
+PORT=55432
+DB=testbed
+
+[ -x "$PGBIN/initdb" ] || { echo "pgfixture: $PGBIN/initdb not found" >&2; exit 2; }
+
+wait_ready() {  # wait_ready <seconds>
+  i=0
+  while [ "$i" -lt "$1" ]; do
+    if "$PGBIN/pg_isready" -h 127.0.0.1 -p "$PORT" -q 2>/dev/null; then return 0; fi
+    i=$((i + 1)); sleep 1
+  done
+  return 1
+}
+
+case "${1:-}" in
+start)
+  if [ -f "$PID" ] && kill -0 "$(head -1 "$PID")" 2>/dev/null; then
+    echo "pgfixture: already running (port $PORT)"
+  else
+    rm -f "$PID"
+    if [ ! -s "$DATA/PG_VERSION" ]; then
+      mkdir -p "$DATA" "$SOCK"
+      chmod 700 "$DATA"
+      "$PGBIN/initdb" -D "$DATA" -A trust \
+        --encoding=UTF8 --locale=C.UTF-8 >/dev/null
+      printf "listen_addresses = '127.0.0.1'\nport = %s\nunix_socket_directories = '%s'\n" \
+        "$PORT" "$SOCK" >> "$DATA/postgresql.conf"
+    fi
+    "$PGBIN/pg_ctl" -D "$DATA" -w -t 30 -l "$LOG" start >/dev/null
+    wait_ready 30 || { echo "pgfixture: server did not become ready" >&2; exit 1; }
+    if ! "$PGBIN/psql" -h 127.0.0.1 -p "$PORT" -d postgres -tAc \
+        "SELECT 1 FROM pg_database WHERE datname='$DB'" | grep -q 1; then
+      "$PGBIN/createdb" -h 127.0.0.1 -p "$PORT" "$DB"
+    fi
+    echo "pgfixture: started on 127.0.0.1:$PORT (db $DB)"
+  fi
+  ;;
+stop)
+  if [ -f "$PID" ]; then
+    "$PGBIN/pg_ctl" -D "$DATA" -w -t 30 -m fast stop >/dev/null 2>&1 || true
+  fi
+  echo "pgfixture: stopped"
+  ;;
+status)
+  if [ -f "$PID" ] && kill -0 "$(head -1 "$PID")" 2>/dev/null; then
+    echo "pgfixture: RUNNING port=$PORT db=$DB"
+  else
+    echo "pgfixture: STOPPED"
+  fi
+  ;;
+env)
+  echo "export TESTBED_PG_DSN='postgresql://$(id -un)@127.0.0.1:$PORT/$DB'"
+  echo "export PGHOST=127.0.0.1 PGPORT=$PORT PGDATABASE=$DB PGUSER=$(id -un)"
+  ;;
+destroy)
+  "$0" stop >/dev/null 2>&1 || true
+  rm -rf "$DATA" "$SOCK"
+  echo "pgfixture: data dir and socket removed"
+  ;;
+*)
+  echo "usage: pgfixture {start|stop|status|env|destroy}" >&2
+  exit 2
+  ;;
+esac

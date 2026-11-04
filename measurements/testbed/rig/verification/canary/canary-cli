@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# canary-cli: CLI-arm twin of the canary MCP echo tool [ours].
+# Verification-only; purely local, no network.
+case "${1:-}" in
+  echo)
+    [ $# -ge 2 ] || { echo "usage: canary-cli echo TEXT" >&2; exit 2; }
+    printf 'CANARY_ECHO_OK: %s\n' "$2"
+    ;;
+  --version)
+    echo "canary-cli 1.0.0"
+    ;;
+  *)
+    echo "usage: canary-cli echo TEXT | --version" >&2
+    exit 2
+    ;;
+esac

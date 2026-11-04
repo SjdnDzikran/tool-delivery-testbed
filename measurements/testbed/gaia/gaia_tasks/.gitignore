@@ -1,0 +1,2 @@
+# Operator-supplied benchmark records and answer keys must stay local.
+*.json

@@ -1,0 +1,41 @@
+# First real-task admission phase: the two intended controls, not capability probes.
+# GLM/max only; one primary attempt per configuration; separate from the campaign.
+schema_version = 1
+[harness]
+campaign_id = "real-task-controls-glm-2026-10-31-v1"
+binary = "~/.local/bin/pi-research"
+required_version = "1.0.4"
+auth_source = "~/.config/tool-delivery-testbed/auth.json"
+auth_mode = "copy"
+harbor_pilot_image = "pi-harbor-pilot:corrected-v2"
+harbor_image_id = "sha256:d157e18511f9800c0238647b2ecf4cc6252c79f95e26f69c439c1f39f8401529"
+harbor_route_contract = "declared-route-v1"
+harbor_trace_cli = true
+[paths]
+skills_dir = "../skills"
+[models.glm53flash]
+provider = "zai"
+id = "glm-5.3-flash"
+thinking = "max"
+[catalog]
+[capabilities]
+[tasks.control_1]
+instruction = "../../controls/control_1_filter_sort/instruction.md"
+capabilities = []
+catalog = []
+deadline_s = 600
+[tasks.control_2]
+instruction = "../../controls/control_2_group_aggregate/instruction.md"
+capabilities = []
+catalog = []
+deadline_s = 600
+[matrix]
+modes = ["eager", "deferred", "cli"]
+models = ["glm53flash"]
+catalogs = ["required"]
+reps = 1
+seed = 2026
+[quota]
+max_attempts_per_trial = 1
+[budget]
+max_total_tokens = 250000

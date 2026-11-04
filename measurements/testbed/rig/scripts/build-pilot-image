@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Build the common pilot image without changing host tools or authentication.
+set -euo pipefail
+RIG=$(cd "$(dirname "$0")/.." && pwd)
+export DOCKER_CONFIG=${DOCKER_CONFIG:-$RIG/runtime/docker-client}
+BUILD=$RIG/runtime/pilot-image-build
+mkdir -p "$BUILD/bin"
+exec 9>"$RIG/runtime/harbor-pilot-controller.lock"
+flock -n 9 || { echo 'Pilot active; do not rebuild runtime images concurrently' >&2; exit 2; }
+TAG=${1:-pi-harbor-pilot:engineering-v1}
+if docker image inspect "$TAG" >/dev/null 2>&1; then
+    echo 'Image tag exists; pass a fresh tag instead of replacing a frozen image' >&2
+    exit 2
+fi
+find "$RIG/harbor_pi/pilot_image" -maxdepth 1 -type f -exec cp {} "$BUILD/" \;
+cp "$RIG/runtime/downloads/google-chrome-stable.deb" "$BUILD/chrome.deb"
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$BUILD/postgres-key.asc"
+cp "$RIG/runtime/uv/uv" "$BUILD/uv"
+cp "$RIG/runtime/pg-requirements-resolved.txt" "$BUILD/"
+cp "$RIG/runtime/bin/gh" "$RIG/runtime/bin/github-mcp-server" "$BUILD/bin/"
+python3 - "$BUILD/bin/bx" <<'PY'
+from pathlib import Path
+import shutil, sys
+wrapper = Path(shutil.which('bx')).resolve()
+source = wrapper.parents[1] / 'node_modules/@brave/brave-search-cli-linux-x64/bin/bx'
+if not source.is_file():
+    raise SystemExit('Expected the existing bx 1.7.0 linux-x64 platform binary')
+shutil.copy2(source, sys.argv[1])
+PY
+printf '#!/bin/sh\nexec gh "$@"\n' > "$BUILD/bin/gh-github"
+chmod +x "$BUILD/bin/gh-github"
+cp "$RIG/runner.py" "$BUILD/runner.py"
+cp "$RIG/verification/observer/pi-request-observer.ts" "$BUILD/observer.ts"
+docker build -t "$TAG" "$BUILD"
+docker image inspect "$TAG" --format '{{.Id}}' > "$BUILD/image-id.txt"
+# This exception already exists on the host and remains an explicit blocker.
+docker run --rm "$TAG" uv pip check --python /opt/postgres-mcp/bin/python > "$BUILD/dependency-check.txt" 2>&1 || true
+printf 'Frozen local image: '; cat "$BUILD/image-id.txt"

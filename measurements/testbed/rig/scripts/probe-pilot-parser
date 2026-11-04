@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Zero-model comparison. Never mounts host paths or injects credentials.
+set -euo pipefail
+RIG=$(cd "$(dirname "$0")/.." && pwd)
+export DOCKER_CONFIG=${DOCKER_CONFIG:-$RIG/runtime/docker-client}
+OUT=$RIG/runtime/parser-probe
+mkdir -p "$OUT"
+for variant in engineering-v1 parser711; do
+    name=pi-pilot-parser-probe-$variant
+    docker run -d --rm --network none --cpus 1 --memory 1024m --name "$name" "pi-harbor-pilot:$variant" sleep infinity >/dev/null
+    trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+    docker exec "$name" mkdir -p /tmp/probe
+    docker cp "$RIG/verification/capability_checks.py" "$name":/tmp/probe/capability_checks.py
+    docker cp "$RIG/harbor_pi/dependency_probe.py" "$name":/tmp/probe/dependency_probe.py
+    docker exec "$name" python3 /tmp/probe/dependency_probe.py > "$OUT/$variant.json"
+    docker rm -f "$name" >/dev/null
+    trap - EXIT
+done
+python3 - "$OUT" <<'PY'
+import json,sys
+from pathlib import Path
+root=Path(sys.argv[1]); xs=[json.loads((root/(v+'.json')).read_text()) for v in ('engineering-v1','parser711')]
+assert all(x['ok'] for x in xs)
+assert xs[0]['tools_sha256']==xs[1]['tools_sha256']
+print('Both SQL/parser probes pass; exposed tool schemas are identical.')
+PY

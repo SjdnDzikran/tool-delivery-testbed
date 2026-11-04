@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pin Google Chrome for setup/route checks, without changing the host OS.
+# Extracting a deb does NOT install its system sandbox/AppArmor integration.
+set -eu
+RIG=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+DEB="$RIG/runtime/downloads/google-chrome-stable.deb"
+mkdir -p "$(dirname "$DEB")" "$RIG/runtime/chrome"
+curl --fail --location --retry 2 --max-time 180 \
+  https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_156.0.8078.79-1_amd64.deb \
+  -o "$DEB"
+printf '%s  %s\n' be1a1e161419f5c8272432f6860912550d8e29985e925913fa800493a0d0c955 "$DEB" | sha256sum --check --status
+[ "$(dpkg-deb --field "$DEB" Version)" = 156.0.8078.79-1 ]
+dpkg-deb -x "$DEB" "$RIG/runtime/chrome"
+"$RIG/runtime/chrome/opt/google/chrome/chrome" --version
+printf '%s\n' 'Extracted only. Explicit sandboxed launch remains a required check.'

@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@brave/brave-search-mcp-server@PIN_VERSION"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+      "exposure": "deferred",
+      "description": "Web, news, image, and video search via the Brave Search API."
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@PIN_VERSION"],
+      "exposure": "deferred",
+      "description": "Browser automation and web workflows via Playwright."
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": ["postgres-mcp@PIN_VERSION", "-access-mode", "unrestricted"],
+      "env": { "DATABASE_URI": "${TESTBED_PG_DSN}" },
+      "exposure": "deferred",
+      "description": "Read and write access to the task PostgreSQL database."
+    },
+    "github": {
+      "command": "github-mcp-server",
+      "args": ["stdio"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${STUDY_GITHUB_TOKEN}" },
+      "exposure": "deferred",
+      "description": "GitHub repositories, pull requests, issues, and commits."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "pi-harbor-control-image",
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "dependencies": { "@earendil-works/pi-coding-agent": "1.0.4" }
+}

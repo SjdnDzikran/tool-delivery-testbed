@@ -1,0 +1,194 @@
+[
+  {
+    "id": "E01",
+    "name": "Luca Osei",
+    "department": "Engineering",
+    "region": "North",
+    "salary": 128400,
+    "hired": 2017
+  },
+  {
+    "id": "E02",
+    "name": "Yusuf Bergström",
+    "department": "Design",
+    "region": "East",
+    "salary": 84500,
+    "hired": 2021
+  },
+  {
+    "id": "E03",
+    "name": "Celine Weiss",
+    "department": "Marketing",
+    "region": "West",
+    "salary": 79700,
+    "hired": 2015
+  },
+  {
+    "id": "E04",
+    "name": "Viktor Everly",
+    "department": "Sales",
+    "region": "South",
+    "salary": 96200,
+    "hired": 2016
+  },
+  {
+    "id": "E05",
+    "name": "Bruno Lindgren",
+    "department": "Engineering",
+    "region": "North",
+    "salary": 121000,
+    "hired": 2019
+  },
+  {
+    "id": "E06",
+    "name": "Hiro Holm",
+    "department": "Finance",
+    "region": "East",
+    "salary": 91250,
+    "hired": 2024
+  },
+  {
+    "id": "E07",
+    "name": "Uma Ackermann",
+    "department": "Engineering",
+    "region": "West",
+    "salary": 118500,
+    "hired": 2019
+  },
+  {
+    "id": "E08",
+    "name": "Sofia Keller",
+    "department": "Design",
+    "region": "North",
+    "salary": 81200,
+    "hired": 2016
+  },
+  {
+    "id": "E09",
+    "name": "Farid Caldwell",
+    "department": "Marketing",
+    "region": "North",
+    "salary": 75800,
+    "hired": 2023
+  },
+  {
+    "id": "E10",
+    "name": "Nils Mercer",
+    "department": "Sales",
+    "region": "East",
+    "salary": 88300,
+    "hired": 2023
+  },
+  {
+    "id": "E11",
+    "name": "Greta Sorensen",
+    "department": "Engineering",
+    "region": "West",
+    "salary": 112300,
+    "hired": 2018
+  },
+  {
+    "id": "E12",
+    "name": "Omar Jansen",
+    "department": "Finance",
+    "region": "South",
+    "salary": 84900,
+    "hired": 2015
+  },
+  {
+    "id": "E13",
+    "name": "Tomas Ulrich",
+    "department": "Engineering",
+    "region": "North",
+    "salary": 104750,
+    "hired": 2024
+  },
+  {
+    "id": "E14",
+    "name": "Kaya Yilmaz",
+    "department": "Design",
+    "region": "East",
+    "salary": 76900,
+    "hired": 2018
+  },
+  {
+    "id": "E15",
+    "name": "Ravi Peralta",
+    "department": "Marketing",
+    "region": "West",
+    "salary": 72400,
+    "hired": 2023
+  },
+  {
+    "id": "E16",
+    "name": "Aiko Nakamura",
+    "department": "Sales",
+    "region": "South",
+    "salary": 83100,
+    "hired": 2015
+  },
+  {
+    "id": "E17",
+    "name": "Dario Fontaine",
+    "department": "Engineering",
+    "region": "North",
+    "salary": 98600,
+    "hired": 2019
+  },
+  {
+    "id": "E18",
+    "name": "Pia Dietrich",
+    "department": "Finance",
+    "region": "East",
+    "salary": 79600,
+    "hired": 2019
+  },
+  {
+    "id": "E19",
+    "name": "Mina Vance",
+    "department": "Engineering",
+    "region": "West",
+    "salary": 104750,
+    "hired": 2020
+  },
+  {
+    "id": "E20",
+    "name": "Ines Tanaka",
+    "department": "Design",
+    "region": "North",
+    "salary": 71300,
+    "hired": 2021
+  },
+  {
+    "id": "E21",
+    "name": "Ximena Quist",
+    "department": "Marketing",
+    "region": "North",
+    "salary": 68895,
+    "hired": 2022
+  },
+  {
+    "id": "E22",
+    "name": "Elsa Rinaldi",
+    "department": "Sales",
+    "region": "East",
+    "salary": 67500,
+    "hired": 2017
+  },
+  {
+    "id": "E23",
+    "name": "Wren Garza",
+    "department": "Engineering",
+    "region": "West",
+    "salary": 87400,
+    "hired": 2019
+  },
+  {
+    "id": "E24",
+    "name": "Jonas Ibarra",
+    "department": "Engineering",
+    "region": "South",
+    "salary": 78200,
+    "hired": 2023
+  }
+]

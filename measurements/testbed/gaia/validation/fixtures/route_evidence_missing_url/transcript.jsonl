@@ -1,0 +1,2 @@
+{"role": "user", "text": "In this synthetic test, what is the fictional city printed on the sample card?"}
+{"role": "assistant", "tool": "browser", "text": "fetched https://example.com/unrelated-page"}
