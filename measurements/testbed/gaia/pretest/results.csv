@@ -1,0 +1,13 @@
+task,model,rep,tool_dependent_pass,reference_in_answer,exit_code,tool_calls
+gaia_1,glm53flash,1,0,0,0,0
+gaia_1,glm53flash,2,0,0,0,0
+gaia_1,glm53flash,3,1,1,0,0
+gaia_1,gpt6luna,1,1,1,0,0
+gaia_1,gpt6luna,2,1,1,0,0
+gaia_1,gpt6luna,3,1,1,0,0
+gaia_2,glm53flash,1,0,1,0,0
+gaia_2,glm53flash,2,0,0,0,0
+gaia_2,glm53flash,3,0,1,0,0
+gaia_2,gpt6luna,1,0,1,0,0
+gaia_2,gpt6luna,2,0,1,0,0
+gaia_2,gpt6luna,3,0,1,0,0

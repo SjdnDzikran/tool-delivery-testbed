@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 
 RIG = Path(__file__).resolve().parents[2]
-LOADER = importlib.machinery.SourceFileLoader('main_supervisor', str(RIG/'scripts/supervise-main-v6'))
+LOADER = importlib.machinery.SourceFileLoader('main_supervisor', str(RIG/'scripts/supervise-main'))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
 supervisor = importlib.util.module_from_spec(SPEC)
 LOADER.exec_module(supervisor)

@@ -1,0 +1,88 @@
+{
+  "provenance": "ours: static measurements, zero model calls",
+  "reference_tokenizers_not_provider_token_measurements": true,
+  "tiktoken_version": "0.14.0",
+  "count_scope": "Entire SKILL.md including frontmatter, versus entire root help output",
+  "measurements": [
+    {
+      "folder": "bx-search",
+      "skill_name": "brave-search",
+      "cli_version": "1.7.0",
+      "skill_sha256": "95791b3d1da34680e26a60a425d3987253afc2326afd28668d9709c26822c581",
+      "description_words": 12,
+      "description_tokens": {
+        "o200k_base": 15,
+        "cl100k_base": 15
+      },
+      "skill_tokens": {
+        "o200k_base": 357,
+        "cl100k_base": 356
+      },
+      "root_help_tokens": {
+        "o200k_base": 706,
+        "cl100k_base": 702
+      },
+      "root_help_source": "docs/preliminary/skill-artifacts/bx-help-output.txt"
+    },
+    {
+      "folder": "gh",
+      "skill_name": "gh",
+      "cli_version": "2.103.3",
+      "skill_sha256": "821da6606fd2bea8b5195a9c40f843303128a16353a273b149d70d907cd00b23",
+      "description_words": 14,
+      "description_tokens": {
+        "o200k_base": 20,
+        "cl100k_base": 20
+      },
+      "skill_tokens": {
+        "o200k_base": 433,
+        "cl100k_base": 425
+      },
+      "root_help_tokens": {
+        "o200k_base": 610,
+        "cl100k_base": 595
+      },
+      "root_help_source": "measurements/real-task-pilot-2026-10-31/cli-skills-static-v2.json"
+    },
+    {
+      "folder": "playwright-cli",
+      "skill_name": "playwright-cli",
+      "cli_version": "0.1.22",
+      "skill_sha256": "bc1f555eb89751841fb345e10bb245b2f391e1c455bd5a672ca593e531f96edc",
+      "description_words": 17,
+      "description_tokens": {
+        "o200k_base": 21,
+        "cl100k_base": 21
+      },
+      "skill_tokens": {
+        "o200k_base": 354,
+        "cl100k_base": 353
+      },
+      "root_help_tokens": {
+        "o200k_base": 1578,
+        "cl100k_base": 1572
+      },
+      "root_help_source": "measurements/real-task-pilot-2026-10-31/cli-skills-static-v2.json"
+    },
+    {
+      "folder": "psql",
+      "skill_name": "psql",
+      "cli_version": "16.15",
+      "skill_sha256": "b110b2fda0abf11122ca6dd4bea21dbda73228023f75891c460b2448abc2b953",
+      "description_words": 11,
+      "description_tokens": {
+        "o200k_base": 15,
+        "cl100k_base": 15
+      },
+      "skill_tokens": {
+        "o200k_base": 321,
+        "cl100k_base": 307
+      },
+      "root_help_tokens": {
+        "o200k_base": 780,
+        "cl100k_base": 773
+      },
+      "root_help_source": "measurements/real-task-pilot-2026-10-31/cli-skills-static-v2.json"
+    }
+  ]
+}

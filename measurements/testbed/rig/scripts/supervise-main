@@ -18,8 +18,8 @@ from harbor_pi.bridge import docker_env
 from harbor_pi.campaign_freeze import verify_freeze
 from harbor_pi.pilot import matrix_specs, result_summary
 
-MANIFEST = RIG / 'examples/harbor-campaign-execution-v2.toml'
-OUTPUT = RIG / 'runtime/main-campaign-2026-11-01-v2'
+MANIFEST = RIG / 'examples/harbor-campaign.toml'
+OUTPUT = RIG / 'runtime/main-campaign-2026-11-01-v7'
 STATE = OUTPUT / 'supervisor-state.json'
 
 
@@ -43,7 +43,10 @@ def status():
     verify_freeze(m, MANIFEST)
     available = pending(m, state)
     summary = json.loads((OUTPUT/'summary.json').read_text()) if (OUTPUT/'summary.json').exists() else {'rows': []}
+    incidents = list(OUTPUT.glob('*/predecessor-setup-failure.json'))
     return {**state, 'next_cell': available[0] if available else None,
+            'retained_setup_failures': len(incidents),
+            'assigned_cells_accounted_for': len(summary['rows']) + len(incidents),
             'recorded_attempts': len(summary['rows']),
             'outcomes': dict(Counter(r.get('outcome', 'not_completed') for r in summary['rows'])),
             'recorded_tokens': summary.get('recorded_total_tokens', 0)}
@@ -88,6 +91,8 @@ def run():
                 code = subprocess.run([sys.executable, '-u', '-m', 'harbor_pi.pilot',
                     '--manifest', str(MANIFEST), '--output', str(OUTPUT), '--model', spec['model'], '--execute'],
                     env={**os.environ, 'PYTHONPATH': str(RIG)}, stdout=log, stderr=subprocess.STDOUT).returncode
+            if code and not (directory/'scope.json').is_file():
+                raise RuntimeError('Preparation failed before scope; see retained controller log')
             row = result_summary(directory)
             cleanup = cleanup_check(directory)
             quota = row.get('process_status') == 'provider_blocked'

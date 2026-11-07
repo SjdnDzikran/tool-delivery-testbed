@@ -1,0 +1,3 @@
+model,provider,api_model_id,thinking
+glm53flash,zai,glm-5.3-flash,max
+gpt6luna,openai,gpt-6-luna,max

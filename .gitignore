@@ -23,7 +23,13 @@ measurements/testbed/rig/runtime/real-task-preparation/
 measurements/testbed/rig/runtime/harbor-pilot-controller.lock
 
 # Run outputs and local evidence
-measurements/testbed/rig/verification/evidence/
+measurements/testbed/rig/verification/evidence/*
+!measurements/testbed/rig/verification/evidence/gh-wrapper-usage-2026-11-06.json
+!measurements/testbed/rig/verification/evidence/resident-probes-2026-11-06.json
+!measurements/testbed/rig/verification/evidence/skill-help-sizes-2026-11-06.json
 measurements/testbed/rig/runtime/harbor-*/
 measurements/testbed/rig/runtime/*runs*/
 measurements/testbed/rig/runtime/*jobs*/
+
+# Generated figures
+results/figures/*.pdf

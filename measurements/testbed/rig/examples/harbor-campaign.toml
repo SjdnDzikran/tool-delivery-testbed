@@ -1,4 +1,4 @@
-# Versioned historical manifest example. It references external freeze receipts
+# Final campaign manifest. It references external freeze receipts
 # and private task assets that are not included in this public source release.
 # Review all credentials, limits, and remote side effects before adapting it.
 schema_version = 1

@@ -1,0 +1,38 @@
+{
+  "provenance": "ours: offline text match over native events of the 432 reported runs",
+  "model_calls": 0,
+  "groups": {
+    "cli_no_github_required": {
+      "runs": 108,
+      "runs_reading_skill_before_first_use": 0,
+      "runs_using_wrapper": 0,
+      "runs_with_plain_gh_operation": 0,
+      "runs_with_plain_gh_version_check": 0,
+      "wrapper_matches": 0
+    },
+    "cli_requires_github": {
+      "runs": 36,
+      "runs_reading_skill_before_first_use": 36,
+      "runs_using_wrapper": 36,
+      "runs_with_plain_gh_operation": 0,
+      "runs_with_plain_gh_version_check": 1,
+      "wrapper_matches": 238
+    },
+    "mcp_no_github_required": {
+      "runs": 216,
+      "runs_reading_skill_before_first_use": 0,
+      "runs_using_wrapper": 0,
+      "runs_with_plain_gh_operation": 0,
+      "runs_with_plain_gh_version_check": 0,
+      "wrapper_matches": 0
+    },
+    "mcp_requires_github": {
+      "runs": 72,
+      "runs_reading_skill_before_first_use": 0,
+      "runs_using_wrapper": 0,
+      "runs_with_plain_gh_operation": 0,
+      "runs_with_plain_gh_version_check": 0,
+      "wrapper_matches": 0
+    }
+  }
+}

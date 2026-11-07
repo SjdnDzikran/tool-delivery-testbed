@@ -17,6 +17,7 @@ The manifest-driven runner configures the model, tools, task, limits, and repeti
 - `measurements/testbed/composites/` — two cross-family tasks with database fixtures, setup/reset scripts, and independent verifiers.
 - `measurements/testbed/gaia/` — GAIA-compatible answer verifier and synthetic regression fixtures.
 - `measurements/testbed/rig/` — Pi runner, example manifests, capability setup scripts, CLI skills, tests, and optional Harbor integration.
+- `results/` — numeric results of the main campaign, with the analysis and figure scripts. See its [README](results/README.md).
 
 See the [testbed guide](measurements/testbed/README.md), [runner guide](measurements/testbed/rig/README.md), and [runner reference](measurements/testbed/rig/GUIDE.md) for details.
 

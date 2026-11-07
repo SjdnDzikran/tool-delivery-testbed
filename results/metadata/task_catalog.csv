@@ -1,0 +1,13 @@
+task,task_label,family,workload_group,capabilities
+composite_1,Search and database,composite,composite,brave;postgres
+composite_2,Database and repository,composite,composite,postgres;github
+control_1,Filter and sort,control,control,
+control_2,Group and aggregate,control,control,
+customer_segmentation_setup,Customer segmentation setup,browser_operations,single_capability,browser
+employee_demographics_report,Employee demographics report,database_operations,single_capability,postgres
+employee_hierarchy_management,Employee hierarchy management,database_operations,single_capability,postgres
+find_salient_file,Find salient file,software_developer_workflows,single_capability,github
+gaia_1,GAIA 1,information_retrieval,single_capability,brave
+gaia_2,GAIA 2,information_retrieval,single_capability,brave
+products_sales_analysis,Products sales analysis,browser_operations,single_capability,browser
+release_management_workflow,Release management workflow,software_developer_workflows,single_capability,github
